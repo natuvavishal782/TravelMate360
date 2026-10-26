@@ -1,0 +1,66 @@
+[
+  {
+    "name": "Kyoto, Japan",
+    "region": "Asia",
+    "tag": "Culture",
+    "description": "Temples, gardens, traditional streets and seasonal scenery.",
+    "budget": "Mid-range",
+    "emoji": "\ud83c\udfef"
+  },
+  {
+    "name": "Lisbon, Portugal",
+    "region": "Europe",
+    "tag": "City break",
+    "description": "Hillside viewpoints, historic trams and coastal day trips.",
+    "budget": "Mid-range",
+    "emoji": "\ud83d\ude8b"
+  },
+  {
+    "name": "Banff, Canada",
+    "region": "North America",
+    "tag": "Nature",
+    "description": "Mountain lakes, hiking routes and dramatic alpine landscapes.",
+    "budget": "Premium",
+    "emoji": "\ud83c\udfd4\ufe0f"
+  },
+  {
+    "name": "Marrakech, Morocco",
+    "region": "Africa",
+    "tag": "Culture",
+    "description": "Markets, courtyards, architecture and food experiences.",
+    "budget": "Value to mid-range",
+    "emoji": "\ud83d\udd4c"
+  },
+  {
+    "name": "Queenstown, New Zealand",
+    "region": "Oceania",
+    "tag": "Adventure",
+    "description": "Lake scenery, mountain activities and outdoor adventures.",
+    "budget": "Premium",
+    "emoji": "\ud83d\udef6"
+  },
+  {
+    "name": "Cusco, Peru",
+    "region": "South America",
+    "tag": "History",
+    "description": "Andean culture, historic streets and access to major heritage sites.",
+    "budget": "Value to mid-range",
+    "emoji": "\ud83e\udd99"
+  },
+  {
+    "name": "Reykjav\u00edk, Iceland",
+    "region": "Europe",
+    "tag": "Nature",
+    "description": "A compact capital for geothermal sights and northern landscapes.",
+    "budget": "Premium",
+    "emoji": "\ud83c\udf0b"
+  },
+  {
+    "name": "Udaipur, India",
+    "region": "Asia",
+    "tag": "Culture",
+    "description": "Lakeside palaces, old-city lanes and regional cuisine.",
+    "budget": "Value to mid-range",
+    "emoji": "\ud83d\udef6"
+  }
+]
