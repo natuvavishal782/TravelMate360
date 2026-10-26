@@ -81,7 +81,81 @@ const nav=[['Overview',Compass],['AI Trip Planner',Sparkles],['My trips',MapPin]
 }[section];
  return <div className="app-shell"><aside className={`sidebar ${mobileOpen?'open':''}`}><div className="brand"><div className="brand-mark"><Compass size={23}/></div><div><strong>TravelMate <span>360</span></strong><small>YOUR WORLD, IN ONE PLACE</small></div><button className="icon-btn close-mobile" onClick={()=>setMobileOpen(false)}><X size={19}/></button></div><div className="side-label">WORKSPACE</div><nav>{nav.map(([name,Icon])=><button key={name} className={`nav-item ${section===name?'active':''}`} onClick={()=>{setSection(name);setMobileOpen(false)}}><Icon size={18}/><span>{name}</span>{name==='Feature catalogue'&&<b className="nav-count">1k</b>}</button>)}</nav><div className="sidebar-bottom"><div className="help-card"><div className="help-icon"><Sparkles size={18}/></div><strong>Made for curious travellers</strong><p>Your planning space grows with every journey.</p><button onClick={()=>setSection('Feature catalogue')}>Explore the roadmap <ArrowRight size={14}/></button></div><div className="profile"><div className="avatar">T</div><div><strong>Traveller</strong><small>Personal workspace</small></div><span className="online-dot"/></div></div></aside>{mobileOpen&&<button className="mobile-scrim" onClick={()=>setMobileOpen(false)} aria-label="Close navigation"/>}
  <main className="main-area"><header className="topbar"><button className="icon-btn menu-btn" onClick={()=>setMobileOpen(true)}><Menu size={21}/></button><div className="breadcrumb"><span>Workspace</span><ChevronRight size={14}/><strong>{section}</strong></div><div className="top-actions"><span className="status-pill"><span/>{supabase?'Cloud settings configured':'Starter mode'}</span><button className="icon-btn" onClick={exportData} title="Export planner data"><Download size={18}/></button><div className="avatar avatar-small">T</div></div></header><div className="page-content"><div className="page-heading"><div><div className="eyebrow"><Sparkles size={14}/> YOUR PERSONAL TRAVEL HUB</div><h1>{heads[0]}</h1><p>{heads[1]}</p></div><button className="primary-btn" onClick={()=>setSection('My trips')}><Plus size={17}/> Plan a trip</button></div>
- {section==='Overview'&&<><section className="hero-banner"><div className="hero-copy"><span className="hero-chip"><Sparkles size={13}/> YOUR NEXT CHAPTER</span><h2>The world is full of<br/><em>somewhere new.</em></h2><p>Bring your plans, places, and travel details together. Your next great story starts with one small step.</p><button className="light-btn" onClick={()=>setSection('Discover')}>Explore destinations <ArrowRight size={16}/></button><div className="hero-foot"><span><Globe2 size={15}/> Worldwide inspiration</span><span><Heart size={15}/> Made around you</span></div></div><div className="hero-art"><div className="sun-disc"/><div className="hill hill-back"/><div className="hill hill-front"/><div className="hero-pin"><MapPin size={23}/></div><div className="floating-card"><div className="float-icon"><Plane size={17}/></div><div><strong>Your next stop?</strong><small>Somewhere wonderful</small></div><Sparkles size={16} className="float-spark"/></div><div className="art-stamp">GO<br/>EXPLORE</div></div></section>
+
+{section==='AI Trip Planner'&&<div className="single-column">
+  <section className="panel">
+    <div className="panel-head">
+      <div>
+        <h3><Sparkles size={19}/> AI itinerary creator</h3>
+        <p>Create a day-by-day plan for your next journey.</p>
+      </div>
+      <div className="panel-symbol purple"><Plane size={20}/></div>
+    </div>
+
+    <form className="trip-form" onSubmit={generateAITrip}>
+      <label className="field-label">Destination
+        <input required maxLength={100}
+          value={aiDestination}
+          onChange={e=>setAiDestination(e.target.value)}
+          placeholder="e.g. Tokyo, Japan"/>
+      </label>
+
+      <label className="field-label">Duration (days)
+        <input type="number" min="1" max="14" required
+          value={aiDays}
+          onChange={e=>setAiDays(e.target.value)}/>
+      </label>
+
+      <label className="field-label">Interests
+        <input maxLength={300}
+          value={aiInterests}
+          onChange={e=>setAiInterests(e.target.value)}
+          placeholder="Nature, food, history…"/>
+      </label>
+
+      <label className="field-label">Budget
+        <select value={aiBudget} onChange={e=>setAiBudget(e.target.value)}>
+          <option>Budget-friendly</option>
+          <option>Moderate</option>
+          <option>Premium</option>
+          <option>Not specified</option>
+        </select>
+      </label>
+
+      <label className="field-label">Travellers
+        <select value={aiTravelers} onChange={e=>setAiTravelers(e.target.value)}>
+          <option>Solo</option>
+          <option>Couple</option>
+          <option>Family</option>
+          <option>Friends</option>
+          <option>Not specified</option>
+        </select>
+      </label>
+
+      <button className="primary-btn" type="submit" disabled={aiLoading}>
+        <Sparkles size={17}/>
+        {aiLoading ? 'Creating itinerary…' : 'Generate AI itinerary'}
+      </button>
+    </form>
+
+    {aiError&&<p role="alert" className="error-message">{aiError}</p>}
+
+    {aiItinerary&&<div className="ai-result">
+      <h3>Your itinerary</h3>
+      <p>{aiDestination} · {aiDays} days</p>
+      <button className="outline-btn" type="button"
+        onClick={()=>navigator.clipboard.writeText(aiItinerary)}>
+        Copy itinerary
+      </button>
+      <pre className="ai-itinerary-text">{aiItinerary}</pre>
+      <p className="fine-print">
+        Verify prices, opening hours, entry requirements and transport information before travelling.
+      </p>
+    </div>}
+  </section>
+</div>}
+
+  {section==='Overview'&&<><section className="hero-banner"><div className="hero-copy"><span className="hero-chip"><Sparkles size={13}/> YOUR NEXT CHAPTER</span><h2>The world is full of<br/><em>somewhere new.</em></h2><p>Bring your plans, places, and travel details together. Your next great story starts with one small step.</p><button className="light-btn" onClick={()=>setSection('Discover')}>Explore destinations <ArrowRight size={16}/></button><div className="hero-foot"><span><Globe2 size={15}/> Worldwide inspiration</span><span><Heart size={15}/> Made around you</span></div></div><div className="hero-art"><div className="sun-disc"/><div className="hill hill-back"/><div className="hill hill-front"/><div className="hero-pin"><MapPin size={23}/></div><div className="floating-card"><div className="float-icon"><Plane size={17}/></div><div><strong>Your next stop?</strong><small>Somewhere wonderful</small></div><Sparkles size={16} className="float-spark"/></div><div className="art-stamp">GO<br/>EXPLORE</div></div></section>
  <div className="stats-grid"><Stat icon={MapPin} label="Planned trips" value={trips.length} color="coral" hint="Your journeys, gathered"/><Stat icon={Wallet} label="Budget target" value={money(budget.total)} color="purple" hint="Your current trip budget"/><Stat icon={ListChecks} label="Prep progress" value={`${checklist.length?Math.round(completed/checklist.length*100):0}%`} color="green" hint={`${completed} tasks completed`}/><Stat icon={Globe2} label="Destinations to explore" value={destinations.length} color="blue" hint="Starter inspiration list"/></div>
  <div className="content-grid"><section className="panel"><div className="panel-head"><div><h3>Trip spaces</h3><p>Your ideas and upcoming journeys</p></div><button className="text-btn" onClick={()=>setSection('My trips')}>View all <ArrowRight size={14}/></button></div>{trips.slice(0,2).map((t,i)=><div className="trip-row" key={t.id}><div className={`trip-thumb ${t.color}`}><span>{i===0?'🌅':'🏔️'}</span><small>{i===0?'CITY ESCAPE':'OUTDOOR DAYS'}</small></div><div className="trip-info"><strong>{t.title}</strong><span><MapPin size={13}/>{t.place}</span><small><CalendarDays size={13}/>{t.dates}</small></div><button className="round-arrow" onClick={()=>setSection('My trips')}><ArrowRight size={17}/></button></div>)}{!trips.length&&<Empty text="Your first trip will appear here."/>}<button className="dashed-add" onClick={()=>setSection('My trips')}><Plus size={16}/> Create another trip</button></section>
  <section className="panel"><div className="panel-head"><div><h3>Budget snapshot</h3><p>A quick look at your plan</p></div><button className="soft-icon" onClick={()=>setSection('Budget planner')}><ArrowRight size={16}/></button></div><div className="budget-total"><div><small>Planned total</small><strong>{money(budget.total)}</strong></div><span className={`budget-badge ${remaining<0?'over':''}`}>{remaining<0?'Over budget':'Estimate'}</span></div><div className="budget-bar"><span style={{width:`${Math.min(100,Math.max(0,spent/Math.max(1,budget.total)*100))}%`}}/></div><div className="budget-legend"><span><i/> Estimated expenses</span><strong>{money(spent)}</strong></div><div className="budget-legend muted"><span><i/>{remaining<0?'Over by':'Remaining'}</span><strong>{money(Math.abs(remaining))}</strong></div><button className="outline-btn full" onClick={()=>setSection('Budget planner')}>Manage budget <ArrowRight size={15}/></button></section></div>
