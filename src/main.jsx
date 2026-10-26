@@ -30,6 +30,35 @@ const [aiError,setAiError]=useState('');
  function notify(s){setToast(s);window.setTimeout(()=>setToast(''),2500)}
  function addTrip(e){e.preventDefault();if(!newTrip.trim())return;setTrips(old=>[{id:Date.now(),title:newTrip.trim(),place:'Destination not chosen yet',dates:'Dates to be decided',color:'purple',tasks:['Choose destination','Set dates','Create first itinerary']},...old]);setNewTrip('');notify('Trip workspace created.')}
 async function generateAITrip(e) {
+ 
+function saveAITrip() {
+  if (!aiItinerary.trim()) {
+    notify('Generate an itinerary before saving.');
+    return;
+  }
+
+  const savedTrip = {
+    id: Date.now(),
+    title: `Trip to ${aiDestination.trim()}`,
+    place: aiDestination.trim(),
+    dates: `${Number(aiDays)} days · AI itinerary`,
+    color: 'purple',
+    tasks: [
+      'Review the itinerary',
+      'Confirm travel and accommodation',
+      'Verify prices and opening hours'
+    ],
+    itinerary: aiItinerary,
+    interests: aiInterests,
+    budget: aiBudget,
+    travelers: aiTravelers,
+    savedAt: new Date().toISOString()
+  };
+
+  setTrips(old => [savedTrip, ...old]);
+  notify('AI itinerary saved to My Trips.');
+}
+
   e.preventDefault();
   setAiError('');
   setAiItinerary('');
@@ -143,10 +172,22 @@ const nav=[['Overview',Compass],['AI Trip Planner',Sparkles],['My trips',MapPin]
     {aiItinerary&&<div className="ai-result">
       <h3>Your itinerary</h3>
       <p>{aiDestination} · {aiDays} days</p>
-      <button className="outline-btn" type="button"
-        onClick={()=>navigator.clipboard.writeText(aiItinerary)}>
-        Copy itinerary
-      </button>
+    
+<div className="ai-actions">
+  <button className="primary-btn" type="button" onClick={saveAITrip}>
+    <Plus size={17}/> Save to My Trips
+  </button>
+
+  <button className="outline-btn" type="button"
+    onClick={() => {
+      navigator.clipboard.writeText(aiItinerary)
+        .then(() => notify('Itinerary copied.'))
+        .catch(() => notify('Could not copy. Please select the itinerary text.'));
+    }}>
+    Copy itinerary
+  </button>
+</div>
+
       <pre className="ai-itinerary-text">{aiItinerary}</pre>
       <p className="fine-print">
         Verify prices, opening hours, entry requirements and transport information before travelling.
