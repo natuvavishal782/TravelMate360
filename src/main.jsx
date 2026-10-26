@@ -3,7 +3,8 @@ import { createRoot } from 'react-dom/client';
 import { createClient } from '@supabase/supabase-js';
 import { Plane, Compass, MapPin, CalendarDays, Wallet, Search, Menu, X, ArrowRight, Sparkles, Globe2, Heart, Plus, Trash2, CheckCircle2, Circle, ShieldCheck, Hotel, TrainFront, Utensils, SlidersHorizontal, Download, ListChecks, Map, ChevronRight, Luggage } from 'lucide-react';
 import './style.css';
-const supabaseUrl=import.meta.env.VITE_SUPABASE_URL, supabaseKey=import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 const supabase=supabaseUrl&&supabaseKey?createClient(supabaseUrl,supabaseKey):null;
 const starterTrips=[{id:1,title:'A weekend to remember',place:'Lisbon, Portugal',dates:'3 days · Flexible dates',color:'coral',tasks:['Choose travel dates','Save 3 places to visit','Set a daily budget']},{id:2,title:'Mountains & fresh air',place:'Banff, Canada',dates:'5 days · Flexible dates',color:'blue',tasks:['Check seasonal conditions','Compare accommodation','Prepare an outdoor packing list']}];
 function App(){
