@@ -81,20 +81,27 @@ Clearly label estimates and advise travelers to verify them.
 
     const data = await response.json();
 
-    if (!response.ok) {
-      console.error(
-        "Gemini API error:",
-        response.status,
-        data.error?.status || "Unknown error"
-      );
+   if (!response.ok) {
+  console.error("Gemini API error:", JSON.stringify({
+    httpStatus: response.status,
+    status: data.error?.status,
+    message: data.error?.message
+  }));
 
-      return res.status(502).json({
-        error:
-          response.status === 429
-            ? "Gemini usage limit reached. Please wait and try again."
-            : "Gemini could not create your itinerary. Check your API configuration and try again."
-      });
-    }
+  let message = "Gemini request failed. Check the Vercel logs.";
+
+  if (response.status === 400 || response.status === 401) {
+    message = "Gemini rejected the request or API key. Check the Vercel logs.";
+  } else if (response.status === 403) {
+    message = "Gemini access is restricted. Check the API key and project permissions.";
+  } else if (response.status === 404) {
+    message = "The Gemini model or API endpoint was not found.";
+  } else if (response.status === 429) {
+    message = "Gemini usage limit reached. Please wait and try again.";
+  }
+
+  return res.status(502).json({ error: message });
+}
 
     const itinerary = (data.candidates?.[0]?.content?.parts || [])
       .map(part => part.text || "")
