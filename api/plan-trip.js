@@ -6,12 +6,13 @@ export default async function handler(req, res) {
     });
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
-  const model = process.env.OPENAI_MODEL || "gpt-4.1-mini";
+  const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
+    console.error("GEMINI_API_KEY is missing.");
+
     return res.status(503).json({
-      error: "AI is not configured yet. Please try again later."
+      error: "Gemini is not configured. Check the Vercel environment variables."
     });
   }
 
@@ -22,55 +23,58 @@ export default async function handler(req, res) {
     typeof destination !== "string" ||
     destination.trim().length < 2 ||
     destination.length > 120 ||
-    !Number.isInteger(days) ||
-    days < 1 ||
-    days > 30
+    !Number.isInteger(Number(days)) ||
+    Number(days) < 1 ||
+    Number(days) > 14
   ) {
     return res.status(400).json({
-      error: "Enter a destination and a trip length of 1–30 days."
+      error: "Enter a destination and a trip length of 1–14 days."
     });
   }
 
   const prompt = `
 You are the AI travel planning assistant for TravelMate 360.
 
-Create a practical travel itinerary using these details:
+Create a practical itinerary using these details:
 Destination: ${destination.trim()}
-Duration: ${days} days
+Duration: ${Number(days)} days
 Interests: ${String(interests || "General sightseeing").slice(0, 500)}
 Budget: ${String(budget || "Not specified").slice(0, 100)}
 Travelers: ${String(travelers || "Not specified").slice(0, 100)}
 
-For every day, provide:
-- A morning, afternoon, and evening schedule
-- Suggested attractions and activities
-- Estimated travel time between stops where reasonably known
-- Food suggestions and rest breaks
-- Estimated daily expenses where possible
+For each day, include morning, afternoon and evening plans,
+attractions, activities, rest breaks, food suggestions,
+and approximate travel times where reasonably known.
 
-Also include a trip summary, budget breakdown, practical
-transport suggestions, and booking or safety reminders.
+Also include a trip summary, estimated budget breakdown,
+transport suggestions, and booking and safety reminders.
 
-Use clear headings and a readable timetable.
-Do not invent confirmed bookings, live opening hours,
-ticket prices, weather, or real-time transport information.
-Label estimates clearly and tell travelers to verify details.
-If information is uncertain, say so.
+Use clear headings and readable formatting.
+Never claim bookings are confirmed or invent live opening
+hours, ticket prices, weather, or real-time transport details.
+Clearly label estimates and advise travelers to verify them.
 `;
 
   try {
     const response = await fetch(
-      "https://api.openai.com/v1/responses",
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`
+          "x-goog-api-key": apiKey
         },
         body: JSON.stringify({
-          model,
-          input: prompt,
-          max_output_tokens: 3500
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: prompt }]
+            }
+          ],
+          generationConfig: {
+            maxOutputTokens: 3500,
+            temperature: 0.7
+          }
         })
       }
     );
@@ -78,31 +82,37 @@ If information is uncertain, say so.
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("AI provider error:", data.error?.type || response.status);
+      console.error(
+        "Gemini API error:",
+        response.status,
+        data.error?.status || "Unknown error"
+      );
 
       return res.status(502).json({
-        error: "The AI could not create your itinerary. Please try again."
+        error:
+          response.status === 429
+            ? "Gemini usage limit reached. Please wait and try again."
+            : "Gemini could not create your itinerary. Check your API configuration and try again."
       });
     }
 
-    const itinerary = (data.output || [])
-      .flatMap(item => item.content || [])
-      .filter(item => item.type === "output_text")
-      .map(item => item.text)
-      .join("\n");
+    const itinerary = (data.candidates?.[0]?.content?.parts || [])
+      .map(part => part.text || "")
+      .join("\n")
+      .trim();
 
     if (!itinerary) {
       return res.status(502).json({
-        error: "The AI returned no itinerary. Please try again."
+        error: "Gemini returned no itinerary. Please try again."
       });
     }
 
     return res.status(200).json({ itinerary });
   } catch (error) {
-    console.error("Trip planning request failed.");
+    console.error("Trip planning request failed:", error.message);
 
     return res.status(500).json({
-      error: "Something went wrong while creating your trip."
+      error: "A server error occurred while creating your itinerary."
     });
   }
 }
