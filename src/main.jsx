@@ -13,6 +13,14 @@ function App(){
  const [budget,setBudget]=useState(()=>{try{return JSON.parse(localStorage.getItem('tm360-budget'))||{total:1200,transport:350,stay:420,food:220,activities:140,other:70}}catch{return {total:1200,transport:350,stay:420,food:220,activities:140,other:70}}});
  const [checklist,setChecklist]=useState(()=>{try{return JSON.parse(localStorage.getItem('tm360-checklist'))||[{id:1,text:'Check passport and entry requirements',done:false},{id:2,text:'Confirm transport and accommodation',done:false},{id:3,text:'Save important addresses offline',done:false},{id:4,text:'Pack chargers and travel essentials',done:false}]}catch{return []}});
  const [newTrip,setNewTrip]=useState(''),[newTask,setNewTask]=useState(''),[toast,setToast]=useState('');
+const [aiDestination,setAiDestination]=useState('');
+const [aiDays,setAiDays]=useState(3);
+const [aiInterests,setAiInterests]=useState('Culture, sightseeing, local food');
+const [aiBudget,setAiBudget]=useState('Moderate');
+const [aiTravelers,setAiTravelers]=useState('Family');
+const [aiLoading,setAiLoading]=useState(false);
+const [aiItinerary,setAiItinerary]=useState('');
+const [aiError,setAiError]=useState('');
  useEffect(()=>{fetch('/destinations.json').then(r=>r.json()).then(setDestinations).catch(()=>{});fetch('/features.json').then(r=>r.json()).then(setFeatures).catch(()=>{});},[]);
  useEffect(()=>localStorage.setItem('tm360-trips',JSON.stringify(trips)),[trips]);useEffect(()=>localStorage.setItem('tm360-budget',JSON.stringify(budget)),[budget]);useEffect(()=>localStorage.setItem('tm360-checklist',JSON.stringify(checklist)),[checklist]);
  const modules=useMemo(()=>['All systems',...new Set(features.map(f=>f.module))],[features]);
