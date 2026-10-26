@@ -29,10 +29,56 @@ const [aiError,setAiError]=useState('');
  const spent=Number(budget.transport)+Number(budget.stay)+Number(budget.food)+Number(budget.activities)+Number(budget.other),remaining=Number(budget.total)-spent,completed=checklist.filter(t=>t.done).length;
  function notify(s){setToast(s);window.setTimeout(()=>setToast(''),2500)}
  function addTrip(e){e.preventDefault();if(!newTrip.trim())return;setTrips(old=>[{id:Date.now(),title:newTrip.trim(),place:'Destination not chosen yet',dates:'Dates to be decided',color:'purple',tasks:['Choose destination','Set dates','Create first itinerary']},...old]);setNewTrip('');notify('Trip workspace created.')}
- function addTask(e){e.preventDefault();if(!newTask.trim())return;setChecklist(old=>[...old,{id:Date.now(),text:newTask.trim(),done:false}]);setNewTask('')}
+async function generateAITrip(e) {
+  e.preventDefault();
+  setAiError('');
+  setAiItinerary('');
+
+  if (!aiDestination.trim()) {
+    setAiError('Please enter a destination.');
+    return;
+  }
+
+  setAiLoading(true);
+
+  try {
+    const response = await fetch('/api/plan-trip', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        destination: aiDestination.trim(),
+        days: Number(aiDays),
+        interests: aiInterests,
+        budget: aiBudget,
+        travelers: aiTravelers
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Could not generate your itinerary.');
+    }
+
+    setAiItinerary(data.itinerary);
+    notify('Your AI itinerary is ready.');
+  } catch (error) {
+    setAiError(error.message || 'Something went wrong. Please try again.');
+  } finally {
+    setAiLoading(false);
+  }
+} function addTask(e){e.preventDefault();if(!newTask.trim())return;setChecklist(old=>[...old,{id:Date.now(),text:newTask.trim(),done:false}]);setNewTask('')}
  function exportData(){const payload={exportedAt:new Date().toISOString(),trips,budget,checklist};const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='travelmate360-trip-data.json';a.click();URL.revokeObjectURL(url);notify('Planner export prepared.')}
- const nav=[['Overview',Compass],['My trips',MapPin],['Discover',Globe2],['Budget planner',Wallet],['Travel checklist',ListChecks],['Feature catalogue',Sparkles]];
- const heads={'Overview':['Your next adventure starts here','Your travel world, thoughtfully organized.'],'My trips':['Your trips','Create a plan, keep the details together, and travel with confidence.'],'Discover':['Find your kind of somewhere','A first collection of destinations to inspire your next journey.'],'Budget planner':['A clearer view of your travel budget','Build an estimate before you book. Amounts are editable planning estimates.'],'Travel checklist':['Ready before you go','Keep important preparation tasks in one place.'],'Feature catalogue':['The TravelMate 360 blueprint','Explore the numbered roadmap of 1,000 planned features.']}[section];
+const nav=[['Overview',Compass],['AI Trip Planner',Sparkles],['My trips',MapPin],['Discover',Globe2],['Budget planner',Wallet],['Travel checklist',ListChecks],['Feature catalogue',Sparkles]];
+ const heads={
+  'Overview':['Your next adventure starts here','Your travel world, thoughtfully organized.'],
+  'My trips':['Your trips','Create a plan, keep the details together, and travel with confidence.'],
+  'Discover':['Find your kind of somewhere','A first collection of destinations to inspire your next journey.'],
+  'Budget planner':['A clearer view of your travel budget','Build an estimate before you book. Amounts are editable planning estimates.'],
+  'Travel checklist':['Ready before you go','Keep important preparation tasks in one place.'],
+  'Feature catalogue':['The TravelMate 360 blueprint','Explore the numbered roadmap of 1,000 planned features.'],
+  'AI Trip Planner':['Build your journey with AI','Create a personalized day-by-day travel itinerary. Review estimates before departure.']
+}[section];
  return <div className="app-shell"><aside className={`sidebar ${mobileOpen?'open':''}`}><div className="brand"><div className="brand-mark"><Compass size={23}/></div><div><strong>TravelMate <span>360</span></strong><small>YOUR WORLD, IN ONE PLACE</small></div><button className="icon-btn close-mobile" onClick={()=>setMobileOpen(false)}><X size={19}/></button></div><div className="side-label">WORKSPACE</div><nav>{nav.map(([name,Icon])=><button key={name} className={`nav-item ${section===name?'active':''}`} onClick={()=>{setSection(name);setMobileOpen(false)}}><Icon size={18}/><span>{name}</span>{name==='Feature catalogue'&&<b className="nav-count">1k</b>}</button>)}</nav><div className="sidebar-bottom"><div className="help-card"><div className="help-icon"><Sparkles size={18}/></div><strong>Made for curious travellers</strong><p>Your planning space grows with every journey.</p><button onClick={()=>setSection('Feature catalogue')}>Explore the roadmap <ArrowRight size={14}/></button></div><div className="profile"><div className="avatar">T</div><div><strong>Traveller</strong><small>Personal workspace</small></div><span className="online-dot"/></div></div></aside>{mobileOpen&&<button className="mobile-scrim" onClick={()=>setMobileOpen(false)} aria-label="Close navigation"/>}
  <main className="main-area"><header className="topbar"><button className="icon-btn menu-btn" onClick={()=>setMobileOpen(true)}><Menu size={21}/></button><div className="breadcrumb"><span>Workspace</span><ChevronRight size={14}/><strong>{section}</strong></div><div className="top-actions"><span className="status-pill"><span/>{supabase?'Cloud settings configured':'Starter mode'}</span><button className="icon-btn" onClick={exportData} title="Export planner data"><Download size={18}/></button><div className="avatar avatar-small">T</div></div></header><div className="page-content"><div className="page-heading"><div><div className="eyebrow"><Sparkles size={14}/> YOUR PERSONAL TRAVEL HUB</div><h1>{heads[0]}</h1><p>{heads[1]}</p></div><button className="primary-btn" onClick={()=>setSection('My trips')}><Plus size={17}/> Plan a trip</button></div>
  {section==='Overview'&&<><section className="hero-banner"><div className="hero-copy"><span className="hero-chip"><Sparkles size={13}/> YOUR NEXT CHAPTER</span><h2>The world is full of<br/><em>somewhere new.</em></h2><p>Bring your plans, places, and travel details together. Your next great story starts with one small step.</p><button className="light-btn" onClick={()=>setSection('Discover')}>Explore destinations <ArrowRight size={16}/></button><div className="hero-foot"><span><Globe2 size={15}/> Worldwide inspiration</span><span><Heart size={15}/> Made around you</span></div></div><div className="hero-art"><div className="sun-disc"/><div className="hill hill-back"/><div className="hill hill-front"/><div className="hero-pin"><MapPin size={23}/></div><div className="floating-card"><div className="float-icon"><Plane size={17}/></div><div><strong>Your next stop?</strong><small>Somewhere wonderful</small></div><Sparkles size={16} className="float-spark"/></div><div className="art-stamp">GO<br/>EXPLORE</div></div></section>
