@@ -9,6 +9,8 @@ const supabase=supabaseUrl&&supabaseKey?createClient(supabaseUrl,supabaseKey):nu
 const starterTrips=[{id:1,title:'A weekend to remember',place:'Lisbon, Portugal',dates:'3 days · Flexible dates',color:'coral',tasks:['Choose travel dates','Save 3 places to visit','Set a daily budget']},{id:2,title:'Mountains & fresh air',place:'Banff, Canada',dates:'5 days · Flexible dates',color:'blue',tasks:['Check seasonal conditions','Compare accommodation','Prepare an outdoor packing list']}];
 function App(){
  const [section,setSection]=useState('Overview'),[mobileOpen,setMobileOpen]=useState(false),[destinations,setDestinations]=useState([]),[features,setFeatures]=useState([]),[featureSearch,setFeatureSearch]=useState(''),[featureModule,setFeatureModule]=useState('All systems'),[destinationSearch,setDestinationSearch]=useState('');
+const [activeTripId, setActiveTripId] = useState(null);
+
  const [trips,setTrips]=useState(()=>{try{return JSON.parse(localStorage.getItem('tm360-trips'))||starterTrips}catch{return starterTrips}});
  const [budget,setBudget]=useState(()=>{try{return JSON.parse(localStorage.getItem('tm360-budget'))||{total:1200,transport:350,stay:420,food:220,activities:140,other:70}}catch{return {total:1200,transport:350,stay:420,food:220,activities:140,other:70}}});
  const [checklist,setChecklist]=useState(()=>{try{return JSON.parse(localStorage.getItem('tm360-checklist'))||[{id:1,text:'Check passport and entry requirements',done:false},{id:2,text:'Confirm transport and accommodation',done:false},{id:3,text:'Save important addresses offline',done:false},{id:4,text:'Pack chargers and travel essentials',done:false}]}catch{return []}});
@@ -27,6 +29,9 @@ const [aiError,setAiError]=useState('');
  const filteredFeatures=useMemo(()=>features.filter(f=>(featureModule==='All systems'||f.module===featureModule)&&(f.name+' '+f.description+' '+f.id).toLowerCase().includes(featureSearch.toLowerCase())),[features,featureModule,featureSearch]);
  const filteredDestinations=destinations.filter(d=>(d.name+d.region+d.tag).toLowerCase().includes(destinationSearch.toLowerCase()));
  const spent=Number(budget.transport)+Number(budget.stay)+Number(budget.food)+Number(budget.activities)+Number(budget.other),remaining=Number(budget.total)-spent,completed=checklist.filter(t=>t.done).length;
+
+const activeTrip = trips.find(t => t.id === activeTripId) || trips[0] || null;
+
  function notify(s){setToast(s);window.setTimeout(()=>setToast(''),2500)}
  function addTrip(e){e.preventDefault();if(!newTrip.trim())return;setTrips(old=>[{id:Date.now(),title:newTrip.trim(),place:'Destination not chosen yet',dates:'Dates to be decided',color:'purple',tasks:['Choose destination','Set dates','Create first itinerary']},...old]);setNewTrip('');notify('Trip workspace created.')}
 
