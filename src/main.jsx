@@ -103,11 +103,21 @@ function saveAITrip() {
     savedAt: new Date().toISOString()
   };
 
+
   setTrips(old => [savedTrip, ...old]);
   notify('AI itinerary saved to My Trips.');
 }
 
-} function addTask(e){e.preventDefault();if(!newTask.trim())return;setChecklist(old=>[...old,{id:Date.now(),text:newTask.trim(),done:false}]);setNewTask('')}
+function addTask(e) {
+  e.preventDefault();
+  if (!newTask.trim()) return;
+  setChecklist(old => [
+    ...old,
+    { id: Date.now(), text: newTask.trim(), done: false }
+  ]);
+  setNewTask('');
+}
+
  function exportData(){const payload={exportedAt:new Date().toISOString(),trips,budget,checklist};const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='travelmate360-trip-data.json';a.click();URL.revokeObjectURL(url);notify('Planner export prepared.')}
 const nav=[['Overview',Compass],['AI Trip Planner',Sparkles],['My trips',MapPin],['Discover',Globe2],['Budget planner',Wallet],['Travel checklist',ListChecks],['Feature catalogue',Sparkles]];
  const heads={
