@@ -29,8 +29,51 @@ const [aiError,setAiError]=useState('');
  const spent=Number(budget.transport)+Number(budget.stay)+Number(budget.food)+Number(budget.activities)+Number(budget.other),remaining=Number(budget.total)-spent,completed=checklist.filter(t=>t.done).length;
  function notify(s){setToast(s);window.setTimeout(()=>setToast(''),2500)}
  function addTrip(e){e.preventDefault();if(!newTrip.trim())return;setTrips(old=>[{id:Date.now(),title:newTrip.trim(),place:'Destination not chosen yet',dates:'Dates to be decided',color:'purple',tasks:['Choose destination','Set dates','Create first itinerary']},...old]);setNewTrip('');notify('Trip workspace created.')}
+
 async function generateAITrip(e) {
- 
+  e.preventDefault();
+  setAiError('');
+  setAiItinerary('');
+
+  if (!aiDestination.trim()) {
+    setAiError('Please enter a destination.');
+    return;
+  }
+
+  setAiLoading(true);
+
+  try {
+    const response = await fetch('/api/plan-trip', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        destination: aiDestination.trim(),
+        days: Number(aiDays),
+        interests: aiInterests,
+        budget: aiBudget,
+        travelers: aiTravelers
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.error || 'Could not generate your itinerary.'
+      );
+    }
+
+    setAiItinerary(data.itinerary);
+    notify('Your AI itinerary is ready.');
+  } catch (error) {
+    setAiError(
+      error.message || 'Something went wrong. Please try again.'
+    );
+  } finally {
+    setAiLoading(false);
+  }
+}
+
 function saveAITrip() {
   if (!aiItinerary.trim()) {
     notify('Generate an itinerary before saving.');
@@ -59,43 +102,6 @@ function saveAITrip() {
   notify('AI itinerary saved to My Trips.');
 }
 
-  e.preventDefault();
-  setAiError('');
-  setAiItinerary('');
-
-  if (!aiDestination.trim()) {
-    setAiError('Please enter a destination.');
-    return;
-  }
-
-  setAiLoading(true);
-
-  try {
-    const response = await fetch('/api/plan-trip', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        destination: aiDestination.trim(),
-        days: Number(aiDays),
-        interests: aiInterests,
-        budget: aiBudget,
-        travelers: aiTravelers
-      })
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Could not generate your itinerary.');
-    }
-
-    setAiItinerary(data.itinerary);
-    notify('Your AI itinerary is ready.');
-  } catch (error) {
-    setAiError(error.message || 'Something went wrong. Please try again.');
-  } finally {
-    setAiLoading(false);
-  }
 } function addTask(e){e.preventDefault();if(!newTask.trim())return;setChecklist(old=>[...old,{id:Date.now(),text:newTask.trim(),done:false}]);setNewTask('')}
  function exportData(){const payload={exportedAt:new Date().toISOString(),trips,budget,checklist};const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='travelmate360-trip-data.json';a.click();URL.revokeObjectURL(url);notify('Planner export prepared.')}
 const nav=[['Overview',Compass],['AI Trip Planner',Sparkles],['My trips',MapPin],['Discover',Globe2],['Budget planner',Wallet],['Travel checklist',ListChecks],['Feature catalogue',Sparkles]];
